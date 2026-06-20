@@ -1,42 +1,39 @@
 # eff
 
-Eff 版は、State effect を `Get` / `Set` operation として定義します。Eff 5.1 の公式サンプルではトップレベル `effect Get : ...` の形が使われているため、このプロジェクトもその形に合わせています。また、現行構文で比較サンプルを確実に動かすため、状態型は `int` に単相化しています。
+Eff 版は、現行 Eff 5.1 の構文に合わせて State effect を `int` 状態の具体例として実装している。
+
+理論上の State effect は状態集合 `S` を固定して、概念的には次の operation を持つ。
+
+```text
+get : () -> S
+put : S -> ()
+```
+
+この Eff サンプルでは `S = int` として、次の operation を使う。
 
 ```eff
 effect Get : int
 effect Set : int -> unit
 ```
 
-`run_state init action` は `Get` と `Set` を初期状態 `init` からの状態変換として解釈します。handler の各 clause は、未処理計算の continuation `k` を受け取り、状態を引数に取る関数へ変換します。
+Eff 5.1 では operation をトップレベルに宣言するため、`Get` と `Set` はコード上は別々の宣言として現れる。ここでは、これらを同じ State signature に属する二つの operation として扱う。
+
+`run_state init action` は `Get` と `Set` を、初期状態 `init` からの状態変換として解釈する handler である。handler clause の continuation `k` を使い、状態を引数に取る関数へ変換してから `finally` で初期状態を渡す。
 
 ## Install Eff
 
-公式 README は OPAM pin を推奨しています。
+公式 README は OPAM pin を推奨している。
 
 ```sh
 opam pin add -k git eff https://github.com/matijapretnar/eff.git
 ```
 
-手動ビルドする場合:
-
-```sh
-git clone https://github.com/matijapretnar/eff.git
-cd eff
-make
-```
-
-この作業環境では公式手順で `eff 5.1(Unix)` をインストールして確認しました。
+この環境では `eff 5.1(Unix)` で確認した。
 
 ## Run
 
 ```sh
 make run
-```
-
-これは次を実行します。
-
-```sh
-eff src/state.eff
 ```
 
 期待される出力:
@@ -51,31 +48,16 @@ run_state 0 example = ((0, 1), 1)
 make test
 ```
 
-これは次を実行します。
-
-```sh
-eff test/state_test.eff
-```
-
-成功時は各 law の `ok - ...` と最後に `all state law tests passed` を表示します。
+成功時は各 law の `ok - ...` と最後に `all state law tests passed` を表示する。
 
 ## File Guide
 
-- `src/state.eff`: effect signature、`run_state`、`get`、`put`、`modify`、`example`
-- `test/state_test.eff`: State law のテスト
+- `src/state.eff`: `Get` / `Set`、`run_state`、`get`、`put`、`modify`、`example`
+- `test/state_test.eff`: `int` State としての State law tests
 - `Makefile`: `make run` / `make test`
 
-## Correspondence
+## Law Tests
 
-| 概念 | Eff | Koka | Haskell |
-| --- | --- | --- | --- |
-| effect signature | `effect Get`, `effect Set` | `effect state<s>` with `ctl get` / `ctl set` | `data StateF s next = ...` |
-| read operation | `perform Get` | `get()` | `get` |
-| write operation | `perform (Set s)` | `set(s)` | `put` |
-| handler | `run_state` の `handler` | `run-state(init, action)` | `runState` |
-| unhandled comp. | `action ()` | effect row に `state<s>` を持つ計算 | `Free (StateF s) a` |
-| continuation | handler clause の `k` | `ctl` clause の `resume` | `Get (s -> next)` |
+ここでの等式テストは、処理系が State law を自動的に保証していることを意味しない。
 
-ここでの等式テストは、State effect の law を処理系が自動的に保証していることを意味しない。
-テストしているのは、今回定義した runState handler / interpreter のもとで、
-二つのプログラムが同じ返り値と最終状態を持つ、という外延的な同値である。
+テストしているのは、今回定義した `run_state` handler のもとで、二つのプログラムが同じ返り値と最終状態を持つ、という外延的な同値である。

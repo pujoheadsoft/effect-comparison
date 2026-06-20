@@ -1,6 +1,15 @@
 # haskell
 
-Haskell 版は State effect を自前の Free monad で明示的に表します。
+Haskell 版は、State effect を自前の Free monad で明示的に表す。
+
+理論上の State effect は、状態集合 `S` を固定して次の operation を持つ。
+
+```text
+get : () -> S
+put : S -> ()
+```
+
+Haskell サンプルでは、この `S` を型パラメータ `s` として `StateF s` に反映している。
 
 ```haskell
 data Free f a
@@ -13,7 +22,20 @@ data StateF s next
   deriving (Functor)
 ```
 
-`StateF` が effect signature、`Free (StateF s) a` がまだ handler に渡していない計算、`runState` が handler / interpreter です。
+`StateF s` が effect signature、`Free (StateF s) a` が未処理計算、`runState` が handler / interpreter に対応する。
+
+```haskell
+get :: Free (StateF s) s
+put :: s -> Free (StateF s) ()
+modify :: (s -> s) -> Free (StateF s) ()
+runState :: s -> Free (StateF s) a -> (a, s)
+```
+
+共通サンプル `example` と tests では、比較しやすいように `s = Int` を使う。
+
+```haskell
+example :: Free (StateF Int) (Int, Int)
+```
 
 ## Run
 
@@ -33,33 +55,17 @@ runState 0 example = ((0,1),1)
 stack test
 ```
 
-テストでは `hspec` と `QuickCheck` を使い、次の law を `runState` 後の返り値と最終状態の一致として確認します。
-
-```text
-get >>= put = return ()
-put s >> put t = put t
-put s >> get = put s >> return s
-get >>= \s -> get >>= \t -> k s t = get >>= \s -> k s s
-```
+テストでは `hspec` と `QuickCheck` を使い、`Int` State として law を確認する。
 
 ## File Guide
 
-- `src/StateFree.hs`: `Free`、`StateF`、`get`、`put`、`modify`、`runState`、`example`
+- `src/StateFree.hs`: `Free`、`StateF s`、`get`、`put`、`modify`、`runState`、`example`
 - `app/Main.hs`: 初期状態 `0` で `example` を実行
-- `test/Spec.hs`: State law のテスト
+- `test/Spec.hs`: `Int` State としての State law tests
 - `package.yaml` / `stack.yaml`: Stack + hpack のプロジェクト設定
 
-## Correspondence
+## Law Tests
 
-| 概念 | Eff | Koka | Haskell |
-| --- | --- | --- | --- |
-| effect signature | `effect Get`, `effect Set` | `effect state<s>` with `ctl get` / `ctl set` | `data StateF s next = Get (s -> next) | Put s next` |
-| read operation | `perform Get` | `get()` | `get` |
-| write operation | `perform (Set s)` | `set(s)` | `put` |
-| handler | `handler ... finally ...` | `run-state(init, action)` | `runState` |
-| unhandled comp. | operation を含む Eff 計算 | effect row に `state<s>` を持つ direct-style 計算 | `Free (StateF s) a` |
-| continuation | handler clause の `k` | `ctl` clause の `resume` | `Get (s -> next)` の関数 |
+ここでの等式テストは、処理系が State law を自動的に保証していることを意味しない。
 
-ここでの等式テストは、State effect の law を処理系が自動的に保証していることを意味しない。
-テストしているのは、今回定義した runState handler / interpreter のもとで、
-二つのプログラムが同じ返り値と最終状態を持つ、という外延的な同値である。
+テストしているのは、今回定義した `runState` interpreter のもとで、二つのプログラムが同じ返り値と最終状態を持つ、という外延的な同値である。
