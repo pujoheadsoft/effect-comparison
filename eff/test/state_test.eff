@@ -1,0 +1,84 @@
+effect Get : int
+effect Set : int -> unit
+
+let run_state init action =
+  let h = handler
+    | x -> (fun s -> (x, s))
+    | effect Get k -> (fun s -> k s s)
+    | effect (Set s') k -> (fun _ -> k () s')
+    | finally f -> f init
+  in
+  with h handle action ()
+;;
+
+let get () = perform Get;;
+
+let put s = perform (Set s);;
+
+let assert_eq name actual expected =
+  if actual = expected then
+    perform (Print ("ok - " ^ name ^ "\n"))
+  else
+    (perform (Print ("FAILED - " ^ name ^ "\n")) ; failwith name)
+;;
+
+let example () =
+  let x = get () in
+  put (x + 1) ;
+  let y = get () in
+  (x, y)
+;;
+
+let law1 init =
+  let left = run_state init (fun () -> let s = get () in put s) in
+  let right = run_state init (fun _ -> ()) in
+  assert_eq "law1" left right
+;;
+
+let law2 init s t value =
+  let left = run_state init (fun () -> put s ; put t ; value) in
+  let right = run_state init (fun () -> put t ; value) in
+  assert_eq "law2" left right
+;;
+
+let law3 init s =
+  let left = run_state init (fun () -> put s ; get ()) in
+  let right = run_state init (fun () -> put s ; s) in
+  assert_eq "law3" left right
+;;
+
+let law4_pure init =
+  let left = run_state init (fun () -> let s = get () in let t = get () in (s, t)) in
+  let right = run_state init (fun () -> let s = get () in (s, s)) in
+  assert_eq "law4 pure" left right
+;;
+
+let law4_put init =
+  let left = run_state init (fun () -> let s = get () in let t = get () in put (s + t) ; (s, t)) in
+  let right = run_state init (fun () -> let s = get () in put (s + s) ; (s, s)) in
+  assert_eq "law4 put" left right
+;;
+
+let _ =
+  assert_eq "example" (run_state 0 example) (((0, 1), 1)) ;
+
+  law1 0 ; law1 1 ; law1 (-5) ;
+
+  law2 0 1 2 99 ;
+  law2 10 (-3) 7 42 ;
+  law2 (-8) 5 5 0 ;
+
+  law3 0 12 ;
+  law3 10 (-4) ;
+  law3 (-1) 0 ;
+
+  law4_pure 0 ;
+  law4_pure 17 ;
+  law4_pure (-3) ;
+
+  law4_put 0 ;
+  law4_put 17 ;
+  law4_put (-3) ;
+
+  perform (Print "all state law tests passed\n")
+;;

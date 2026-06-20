@@ -1,0 +1,50 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Codex / agent session metadata
+.agents/
+.codex/
+.git-store/
+
+# Haskell / Stack and Cabal artifacts
+.stack-work/
+dist/
+dist-newstyle/
+cabal.project.local
+cabal.project.local~
+*.cabal
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+*.prof
+*.aux
+*.hp
+*.eventlog
+
+# Koka build output
+.koka/
+*.kki
+
+# Eff / OCaml build output
+_build/
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.cma
+*.cmxs
+*.annot
+*.byte
+*.native
+
+# External source checkout used only for local verification.
+vendor/
+
+# Scratch files created while checking syntax variants.
+test-single-effect.eff
+koka/test-pure.kk

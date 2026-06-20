@@ -1,0 +1,41 @@
+effect Get : int
+effect Set : int -> unit
+
+let run_state init action =
+  let h = handler
+    | x -> (fun s -> (x, s))
+    | effect Get k -> (fun s -> k s s)
+    | effect (Set s') k -> (fun _ -> k () s')
+    | finally f -> f init
+  in
+  with h handle action ()
+;;
+
+let get () = perform Get;;
+
+let put s = perform (Set s);;
+
+let modify f =
+  let s = get () in
+  put (f s)
+;;
+
+let example () =
+  let x = get () in
+  put (x + 1) ;
+  let y = get () in
+  (x, y)
+;;
+
+let print_result ((x, y), s) =
+  perform (Print
+    ("run_state 0 example = (("
+    ^ string_of_int x
+    ^ ", "
+    ^ string_of_int y
+    ^ "), "
+    ^ string_of_int s
+    ^ ")\n"))
+;;
+
+print_result (run_state 0 example);;
