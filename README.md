@@ -170,6 +170,10 @@ Koka 版は `effect state<s>` として状態型をパラメータ化し、`effe
 
 Haskell 版では、`StateF s next` と `AskF r next` を別々の signature functor として定義している。State 単独では `Free (StateF s) a`、合成サンプルでは sum functor `Sum (StateF s) (AskF r)` による `Free (StateAskF s r) a` を使う。
 
+Haskell 版の `StateAskF s r = Sum (StateF s) (AskF r)` は、State operation と Ask operation を同じ Free の木に入れるための最小限の表現である。これは本格的な open union や extensible effects の実装ではない。operation signature の和と interpreter の対応が見えるようにした、State+Ask 専用の encoding である。
+
+Eff / Koka の State+Ask 例では、Ask は読み取り専用の環境であり、State と干渉しない。そのため、このサンプルでは handler を重ねることで、環境値 `3` と初期状態 `10` から `((10,13),13)` が得られる。handler の順序が一般にいつでも同じ意味になる、という主張ではない。
+
 ## Law Tests
 
 各プロジェクトでは、代表的な State equation をテストしている。二つのプログラムを同じ初期状態で実行し、返り値と最終状態が一致することを確認する。テストの実行値は三言語とも `int` / `Int` でそろえている。

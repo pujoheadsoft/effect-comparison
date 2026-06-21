@@ -51,6 +51,8 @@ type StateAskF s r = Sum (StateF s) (AskF r)
 
 合成サンプル `stateAskExample` は `Free (StateAskF Int Int) (Int, Int)` の未処理計算である。`runStateAsk 3 10 stateAskExample` は `((10,13),13)` を返す。
 
+`StateAskF s r = Sum (StateF s) (AskF r)` は、State operation と Ask operation を同じ Free の木に入れるための最小限の表現である。これは本格的な open union や extensible effects の実装ではない。operation signature の和と interpreter の対応が見えるようにした、State+Ask 専用の encoding である。
+
 ## Build
 
 ```sh

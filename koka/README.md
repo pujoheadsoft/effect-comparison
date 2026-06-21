@@ -54,6 +54,8 @@ pub fun run-state-ask(env : r, init : s, action : () -> <state<s>,ask<r>,div|e> 
 
 環境 `3`、初期状態 `10` で `state-ask-example` を実行すると `((10,13),13)` になる。
 
+この例では Ask は読み取り専用の環境であり、State と干渉しない。そのため、このサンプルでは handler を重ねても、環境値 `3` と初期状態 `10` から `((10,13),13)` が得られる。handler の順序が一般にいつでも同じ意味になる、という主張ではない。
+
 ## Version
 
 ```text

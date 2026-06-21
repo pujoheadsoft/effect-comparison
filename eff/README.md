@@ -40,6 +40,8 @@ return (x, y)
 
 `run_state_ask env init action` は `with ask_handler env handle` と `with state_handler init handle` を重ねて実装している。環境 `3`、初期状態 `10` で `state_ask_example` を実行すると `((10, 13), 13)` になる。
 
+この例では Ask は読み取り専用の環境であり、State と干渉しない。そのため、このサンプルでは handler を重ねても、環境値 `3` と初期状態 `10` から `((10,13),13)` が得られる。handler の順序が一般にいつでも同じ意味になる、という主張ではない。
+
 ## Install Eff
 
 公式 README は OPAM pin を推奨している。
