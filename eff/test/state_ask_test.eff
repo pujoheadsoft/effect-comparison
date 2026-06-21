@@ -1,0 +1,11 @@
+let assert_eq name actual expected =
+  if actual = expected then
+    perform (Print ("ok - " ^ name ^ "\n"))
+  else
+    (perform (Print ("FAILED - " ^ name ^ "\n")) ; failwith name)
+;;
+
+let _ =
+  assert_eq "state + ask example" (run_state_ask 3 10 state_ask_example) (((10, 13), 13)) ;
+  perform (Print "all state + ask tests passed\n")
+;;

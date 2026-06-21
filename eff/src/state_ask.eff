@@ -1,0 +1,13 @@
+let run_state_ask env init action =
+  with ask_handler env handle
+  with state_handler init handle
+    action ()
+;;
+
+let state_ask_example () =
+  let delta = ask () in
+  let x = get () in
+  put (x + delta) ;
+  let y = get () in
+  (x, y)
+;;

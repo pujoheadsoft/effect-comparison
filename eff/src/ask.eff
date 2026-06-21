@@ -1,0 +1,12 @@
+effect Ask : int
+
+let ask () = perform Ask;;
+
+let ask_handler env = handler
+  | x -> x
+  | effect Ask k -> k env
+;;
+
+let run_ask env action =
+  with ask_handler env handle action ()
+;;

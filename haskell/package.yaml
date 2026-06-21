@@ -10,7 +10,10 @@ dependencies:
 library:
   source-dirs: src
   exposed-modules:
+    - Free
     - StateFree
+    - AskFree
+    - StateAskFree
 
 executables:
   state-example:

@@ -1,0 +1,14 @@
+let print_result label ((x, y), s) =
+  perform (Print
+    (label
+    ^ " = (("
+    ^ string_of_int x
+    ^ ", "
+    ^ string_of_int y
+    ^ "), "
+    ^ string_of_int s
+    ^ ")\n"))
+;;
+
+print_result "run_state 0 example" (run_state 0 example);;
+print_result "run_state_ask 3 10 state_ask_example" (run_state_ask 3 10 state_ask_example);;

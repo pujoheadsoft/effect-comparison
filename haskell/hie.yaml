@@ -1,0 +1,8 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "effects-haskell:lib"
+    - path: "./app"
+      component: "effects-haskell:exe:state-example"
+    - path: "./test"
+      component: "effects-haskell:test:state-test"

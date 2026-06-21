@@ -1,6 +1,6 @@
 # haskell
 
-Haskell 版は、State effect を自前の Free monad で明示的に表す。
+Haskell 版は、State effect を自前の Free monad で明示的に表す。Ask と State+Ask の合成は State 本体とは別モジュールに分けている。
 
 理論上の State effect は、状態集合 `S` を固定して次の operation を持つ。
 
@@ -12,10 +12,6 @@ put : S -> ()
 Haskell サンプルでは、この `S` を型パラメータ `s` として `StateF s` に反映している。
 
 ```haskell
-data Free f a
-  = Pure a
-  | Op (f (Free f a))
-
 data StateF s next
   = Get (s -> next)
   | Put s next
@@ -37,6 +33,30 @@ runState :: s -> Free (StateF s) a -> (a, s)
 example :: Free (StateF Int) (Int, Int)
 ```
 
+## State + Ask
+
+Ask は `AskFree` で環境型 `r` にパラメータ化した signature functor として定義している。
+
+```haskell
+newtype AskF r next
+  = Ask (r -> next)
+  deriving (Functor)
+```
+
+State と Ask の合成は `StateAskFree` で定義し、sum functor を使う。
+
+```haskell
+type StateAskF s r = Sum (StateF s) (AskF r)
+```
+
+合成サンプル `stateAskExample` は `Free (StateAskF Int Int) (Int, Int)` の未処理計算である。`runStateAsk 3 10 stateAskExample` は `((10,13),13)` を返す。
+
+## Build
+
+```sh
+stack build
+```
+
 ## Run
 
 ```sh
@@ -47,6 +67,7 @@ stack run state-example
 
 ```text
 runState 0 example = ((0,1),1)
+runStateAsk 3 10 stateAskExample = ((10,13),13)
 ```
 
 ## Test
@@ -55,13 +76,17 @@ runState 0 example = ((0,1),1)
 stack test
 ```
 
-テストでは `hspec` と `QuickCheck` を使い、`Int` State として law を確認する。
+テストでは `hspec` と `QuickCheck` を使い、`Int` State として law を確認する。State + Ask の実行例も `Int` で確認する。成功時は `7 examples, 0 failures` を表示する。
 
 ## File Guide
 
-- `src/StateFree.hs`: `Free`、`StateF s`、`get`、`put`、`modify`、`runState`、`example`
-- `app/Main.hs`: 初期状態 `0` で `example` を実行
-- `test/Spec.hs`: `Int` State としての State law tests
+- `src/Free.hs`: Free monad の共通定義
+- `src/StateFree.hs`: `StateF s`、`get`、`put`、`modify`、`runState`、`example`
+- `src/AskFree.hs`: `AskF r`
+- `src/StateAskFree.hs`: `StateAskF s r`、`ask`、`getStateAsk`、`putStateAsk`、`runStateAsk`、`stateAskExample`
+- `app/Main.hs`: 初期状態 `0` で `example` を、環境 `3` と初期状態 `10` で `stateAskExample` を実行
+- `test/StateSpec.hs`: `Int` State としての State law tests
+- `test/StateAskSpec.hs`: State + Ask の実行例
 - `package.yaml` / `stack.yaml`: Stack + hpack のプロジェクト設定
 
 ## Law Tests

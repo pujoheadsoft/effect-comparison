@@ -1,32 +1,8 @@
-effect Get : int
-effect Set : int -> unit
-
-let run_state init action =
-  let h = handler
-    | x -> (fun s -> (x, s))
-    | effect Get k -> (fun s -> k s s)
-    | effect (Set s') k -> (fun _ -> k () s')
-    | finally f -> f init
-  in
-  with h handle action ()
-;;
-
-let get () = perform Get;;
-
-let put s = perform (Set s);;
-
 let assert_eq name actual expected =
   if actual = expected then
     perform (Print ("ok - " ^ name ^ "\n"))
   else
     (perform (Print ("FAILED - " ^ name ^ "\n")) ; failwith name)
-;;
-
-let example () =
-  let x = get () in
-  put (x + 1) ;
-  let y = get () in
-  (x, y)
 ;;
 
 let law1 init =

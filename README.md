@@ -1,6 +1,6 @@
 # Effect comparison
 
-同じ `State` effect を複数の表現で実装し、比較するためのサンプル集。
+同じ `State` effect と、`State + Ask` の合成を複数の表現で実装し、比較するためのサンプル集。
 
 - Eff: 言語機能としての algebraic effects / handlers
 - Koka: 言語機能としての algebraic effects / handlers と effect rows
@@ -21,7 +21,7 @@ put : S -> ()
 
 ただし、三言語の実行例と law tests では、比較しやすいように `S = int` / `Int` を用いる。
 
-共通のサンプルプログラムは以下。
+共通の State サンプルプログラムは以下。
 
 ```text
 x <- get
@@ -38,52 +38,108 @@ return (x, y)
 全体    : ((0, 1), 1)
 ```
 
+## State + Ask Example
+
+`Ask` は読み取り専用の環境から値を得る effect として扱う。
+
+```text
+ask : () -> R
+```
+
+合成サンプルでは、`Ask` から増分 `delta` を読み、`State` から現在状態を読み、状態を `x + delta` に更新する。
+
+```text
+delta <- ask
+x <- get
+put (x + delta)
+y <- get
+return (x, y)
+```
+
+三言語とも、実行例では `R = int` / `Int`、`S = int` / `Int` として、環境 `3`、初期状態 `10` で実行する。
+
+```text
+返り値  : (10, 13)
+最終状態: 13
+全体    : ((10, 13), 13)
+```
+
+State の定義ファイルには Ask を入れず、Ask と State+Ask の合成は別ファイルに分けている。合成サンプルは、複数の operation を含む未処理計算を handler / interpreter で解釈する形を比較するためのもの。三つの実装が処理系レベルで同一の数学的対象を自動的に提供している、という主張ではない。
+
 ## Layout
 
 ```text
 effect-comparison/
   README.md
+  scripts/
+    build-all.sh
+    run-all.sh
+    test-all.sh
   eff/
     README.md
-    Makefile
     src/state.eff
+    src/ask.eff
+    src/state_ask.eff
+    src/main.eff
     test/state_test.eff
+    test/state_ask_test.eff
   koka/
     README.md
     src/state.kk
+    src/ask.kk
+    src/state-ask.kk
     src/main.kk
     test/state-test.kk
+    test/state-ask-test.kk
   haskell/
     README.md
     package.yaml
     stack.yaml
     app/Main.hs
+    src/Free.hs
     src/StateFree.hs
+    src/AskFree.hs
+    src/StateAskFree.hs
     test/Spec.hs
+    test/StateSpec.hs
+    test/StateAskSpec.hs
 ```
 
 ## Commands
+
+All projects:
+
+```sh
+./scripts/build-all.sh
+./scripts/run-all.sh
+./scripts/test-all.sh
+```
+
+成功時はそれぞれ `OK: build all`、`OK: run all`、`OK: test all` を表示する。
 
 Eff:
 
 ```sh
 cd eff
-make run
-make test
+./build.sh
+./run.sh
+./test.sh
 ```
 
 Koka:
 
 ```sh
 cd koka
-koka --include=src -e src/main.kk
-koka --include=src -e test/state-test.kk
+./build.sh
+./run.sh
+./test.sh
 ```
 
 Haskell:
 
 ```sh
 cd haskell
+stack build
 stack run state-example
 stack test
 ```
@@ -93,24 +149,30 @@ stack test
 | 概念 | Eff | Koka | Haskell |
 | --- | --- | --- | --- |
 | 状態型 | `int` 固定 | `s` でパラメータ化、例では `int` | `s` でパラメータ化、例では `Int` |
-| effect signature | `Get : int`, `Set : int -> unit` | `state<s>` with `get : () -> s`, `set : s -> ()` | `StateF s next = Get (s -> next) \| Put s next` |
-| read operation | `perform Get` | `get()` | `get :: Free (StateF s) s` |
-| write operation | `perform (Set n)` | `set(x)` | `put :: s -> Free (StateF s) ()` |
-| handler / interpreter | `run_state : int -> ... -> (..., int)` | `run-state : s -> ... -> (..., s)` | `runState :: s -> Free (StateF s) a -> (a, s)` |
-| unhandled computation | `Get` / `Set` を含む計算 | `state<s>` effect を持つ direct-style 計算 | `Free (StateF s) a` の構文木 |
-| continuation | handler clause の `k` | `resume` | `Get (s -> next)` の関数 |
+| State signature | `Get : int`, `Set : int -> unit` | `state<s>` with `fun get : () -> s`, `fun set : s -> ()` | `StateF s next = Get (s -> next) \| Put s next` |
+| Ask signature | `Ask : int` | `ask<r>` with `fun ask : () -> r` | `AskF r next = Ask (r -> next)` |
+| State read operation | `perform Get` | `get()` | `get :: Free (StateF s) s` |
+| State write operation | `perform (Set n)` | `set(x)` | `put :: s -> Free (StateF s) ()` |
+| Ask operation | `perform Ask` | `ask()` | `ask :: Free (StateAskF s r) r` |
+| State handler / interpreter | `run_state : int -> ... -> (..., int)` | `run-state : s -> ... -> <div|e> (..., s)` | `runState :: s -> Free (StateF s) a -> (a, s)` |
+| State + Ask handler / interpreter | `run_state_ask : int -> int -> ... -> (..., int)` | `run-state-ask : r -> s -> ... -> <div|e> (..., s)` | `runStateAsk :: r -> s -> Free (StateAskF s r) a -> (a, s)` |
+| State definition file | `eff/src/state.eff` | `koka/src/state.kk` | `haskell/src/StateFree.hs` |
+| Ask definition file | `eff/src/ask.eff` | `koka/src/ask.kk` | `haskell/src/AskFree.hs` |
+| Composition file | `eff/src/state_ask.eff` | `koka/src/state-ask.kk` | `haskell/src/StateAskFree.hs` |
+| unhandled computation | `Get` / `Set` / `Ask` を含む計算 | `<state<s>,ask<r>>` effect を持つ direct-style 計算 | `Free (StateAskF s r) a` の構文木 |
+| continuation | handler clause の `k` | tail-resumptive な `fun` operation | `Get (s -> next)` / `Ask (r -> next)` の関数 |
 
 ## Notes
 
-Eff 5.1 では operation をトップレベルに宣言する。そのため Eff 版では `effect Get : int` と `effect Set : int -> unit` を別々に書いているが、ここでは同じ State signature に属する二つの operation として扱う。現行 Eff で確実に動くサンプルにするため、状態型は `int` に単相化している。
+Eff 5.1 では operation をトップレベルに宣言する。State については、現行 Eff で確実に動くサンプルにするため、状態型を `int` に単相化している。`state.eff` は `Get` / `Set` と `run_state` だけを持ち、`ask.eff` が `Ask`、`state_ask.eff` が合成を担当する。Eff の実行では `-l` で必要な定義ファイルをロードする。
 
-Koka 版は `effect state<s>` として状態型をパラメータ化している。`run-state` は、開いた effect row `<state<s>|e>` ではなく閉じた `state<s>` を受け取り、状態渡し関数 `s -> (a, s)` を組み立てる純粋な handler として書いている。
+Koka 版は `effect state<s>` として状態型をパラメータ化し、`effect ask<r>` として環境型もパラメータ化している。`get` / `set` / `ask` は tail-resumptive な operation として `fun` で宣言している。`run-state` は公式ドキュメントの State handler と同じ形で、ローカル状態を `var` で保持し、`with return` と `with handler` で解釈する。合成サンプルでは `state-ask.kk` で `with run-state(init)` と `with run-ask(env)` を重ねている。
 
-Haskell 版では、`StateF s next` として signature functor を状態型 `s` でパラメータ化している。`Free (StateF s) a` が未処理計算、`runState` が handler / interpreter に対応する。
+Haskell 版では、`StateF s next` と `AskF r next` を別々の signature functor として定義している。State 単独では `Free (StateF s) a`、合成サンプルでは sum functor `Sum (StateF s) (AskF r)` による `Free (StateAskF s r) a` を使う。
 
 ## Law Tests
 
-各プロジェクトでは、代表的な State equation をテストしている。二つのプログラムを同じ初期状態で実行し、返り値と最終状態が一致することを確認する。
+各プロジェクトでは、代表的な State equation をテストしている。二つのプログラムを同じ初期状態で実行し、返り値と最終状態が一致することを確認する。テストの実行値は三言語とも `int` / `Int` でそろえている。
 
 ```text
 get >>= put = return ()
@@ -130,13 +192,18 @@ get >>= \s -> k s s
 Eff:
 
 ```text
-$ cd eff && make run
+$ cd eff && eff -l src/state.eff -l src/ask.eff -l src/state_ask.eff src/main.eff
 run_state 0 example = ((0, 1), 1)
+run_state_ask 3 10 state_ask_example = ((10, 13), 13)
 
-$ cd eff && make test
+$ cd eff && eff -l src/state.eff test/state_test.eff
 ok - example
 ...
 all state law tests passed
+
+$ cd eff && eff -l src/state.eff -l src/ask.eff -l src/state_ask.eff test/state_ask_test.eff
+ok - state + ask example
+all state + ask tests passed
 ```
 
 Koka:
@@ -144,11 +211,16 @@ Koka:
 ```text
 $ cd koka && koka --include=src -e src/main.kk
 run-state(0, example) = ((0,1),1)
+run-state-ask(3, 10, state-ask-example) = ((10,13),13)
 
 $ cd koka && koka --include=src -e test/state-test.kk
 ok - example
 ...
 all state law tests passed
+
+$ cd koka && koka --include=src -e test/state-ask-test.kk
+ok - state + ask example
+all state + ask tests passed
 ```
 
 Haskell:
@@ -156,9 +228,10 @@ Haskell:
 ```text
 $ cd haskell && stack run state-example
 runState 0 example = ((0,1),1)
+runStateAsk 3 10 stateAskExample = ((10,13),13)
 
 $ cd haskell && stack test
-6 examples, 0 failures
+7 examples, 0 failures
 ```
 
 ## Tool Versions Checked
@@ -167,7 +240,7 @@ $ cd haskell && stack test
 Eff 5.1(Unix)
 Koka 3.2.2
 Stack 3.9.1
-Stack resolver lts-22.43 (GHC 9.6.6)
+Stack resolver lts-22.43 with compiler ghc-9.6.7
 ```
 
 Eff は upstream の OPAM pin でインストールした。
