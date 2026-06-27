@@ -1,0 +1,8 @@
+{
+  "koka.languageServer.compilerArguments": [
+    "--library",
+    "--sharedir=/usr/local/share/koka/v3.2.2",
+    "--libdir=/usr/local/lib/koka/v3.2.2",
+    "--include=koka/src"
+  ]
+}

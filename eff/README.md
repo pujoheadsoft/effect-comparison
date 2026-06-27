@@ -88,7 +88,7 @@ eff -l src/state.eff -l src/ask.eff -l src/state_ask.eff test/state_ask_test.eff
 
 ## File Guide
 
-- `src/state.eff`: `Get` / `Set`、`state_handler`、`run_state`、`get`、`put`、`modify`、`example`
+- `src/state.eff`: `Get` / `Set`、`state_handler`、`run_state`、`get`、`put`、`example`
 - `src/ask.eff`: `Ask`、`ask`、`ask_handler`、`run_ask`
 - `src/state_ask.eff`: `run_state_ask`、`state_ask_example`
 - `src/main.eff`: State example と State + Ask example を実行

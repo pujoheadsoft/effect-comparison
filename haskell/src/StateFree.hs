@@ -5,7 +5,6 @@ module StateFree
   , StateF(..)
   , get
   , put
-  , modify
   , runState
   , example
   ) where
@@ -22,11 +21,6 @@ get = Op (Get Pure)
 
 put :: s -> Free (StateF s) ()
 put s = Op (Put s (Pure ()))
-
-modify :: (s -> s) -> Free (StateF s) ()
-modify f = do
-  s <- get
-  put (f s)
 
 runState :: s -> Free (StateF s) a -> (a, s)
 runState s (Pure a) = (a, s)

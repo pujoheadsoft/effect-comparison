@@ -98,7 +98,7 @@ koka --include=src -e test/state-ask-test.kk
 
 ## File Guide
 
-- `src/state.kk`: `effect state<s>`、`get`、`set`、`modify`、`run-state`、`example`
+- `src/state.kk`: `effect state<s>`、`get`、`set`、`run-state`、`example`
 - `src/ask.kk`: `effect ask<r>`、`ask`、`run-ask`
 - `src/state-ask.kk`: `run-state-ask`、`state-ask-example`
 - `src/main.kk`: 初期状態 `0` で `example` を、環境 `3` と初期状態 `10` で `state-ask-example` を実行

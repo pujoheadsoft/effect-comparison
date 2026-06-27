@@ -23,7 +23,6 @@ data StateF s next
 ```haskell
 get :: Free (StateF s) s
 put :: s -> Free (StateF s) ()
-modify :: (s -> s) -> Free (StateF s) ()
 runState :: s -> Free (StateF s) a -> (a, s)
 ```
 
@@ -83,7 +82,7 @@ stack test
 ## File Guide
 
 - `src/Free.hs`: Free monad の共通定義
-- `src/StateFree.hs`: `StateF s`、`get`、`put`、`modify`、`runState`、`example`
+- `src/StateFree.hs`: `StateF s`、`get`、`put`、`runState`、`example`
 - `src/AskFree.hs`: `AskF r`
 - `src/StateAskFree.hs`: `StateAskF s r`、`ask`、`getStateAsk`、`putStateAsk`、`runStateAsk`、`stateAskExample`
 - `app/Main.hs`: 初期状態 `0` で `example` を、環境 `3` と初期状態 `10` で `stateAskExample` を実行

@@ -17,11 +17,6 @@ let get () = perform Get;;
 
 let put s = perform (Set s);;
 
-let modify f =
-  let s = get () in
-  put (f s)
-;;
-
 let example () =
   let x = get () in
   put (x + 1) ;
