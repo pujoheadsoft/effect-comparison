@@ -7,7 +7,7 @@ let run_state_ask env init action =
 let state_ask_example () =
   let delta = ask () in
   let x = get () in
-  put (x + delta) ;
+  set (x + delta) ;
   let y = get () in
   (x, y)
 ;;

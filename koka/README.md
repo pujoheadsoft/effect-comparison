@@ -6,7 +6,7 @@ Koka 版は、direct style の algebraic effect と handler で State effect を
 
 ```text
 get : () -> S
-put : S -> ()
+set : S -> ()
 ```
 
 Koka サンプルでは、この `S` を型パラメータ `s` としてコードに反映している。

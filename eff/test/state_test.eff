@@ -6,20 +6,20 @@ let assert_eq name actual expected =
 ;;
 
 let law1 init =
-  let left = run_state init (fun () -> let s = get () in put s) in
+  let left = run_state init (fun () -> let s = get () in set s) in
   let right = run_state init (fun _ -> ()) in
   assert_eq "law1" left right
 ;;
 
 let law2 init s t value =
-  let left = run_state init (fun () -> put s ; put t ; value) in
-  let right = run_state init (fun () -> put t ; value) in
+  let left = run_state init (fun () -> set s ; set t ; value) in
+  let right = run_state init (fun () -> set t ; value) in
   assert_eq "law2" left right
 ;;
 
 let law3 init s =
-  let left = run_state init (fun () -> put s ; get ()) in
-  let right = run_state init (fun () -> put s ; s) in
+  let left = run_state init (fun () -> set s ; get ()) in
+  let right = run_state init (fun () -> set s ; s) in
   assert_eq "law3" left right
 ;;
 
@@ -29,10 +29,10 @@ let law4_pure init =
   assert_eq "law4 pure" left right
 ;;
 
-let law4_put init =
-  let left = run_state init (fun () -> let s = get () in let t = get () in put (s + t) ; (s, t)) in
-  let right = run_state init (fun () -> let s = get () in put (s + s) ; (s, s)) in
-  assert_eq "law4 put" left right
+let law4_set init =
+  let left = run_state init (fun () -> let s = get () in let t = get () in set (s + t) ; (s, t)) in
+  let right = run_state init (fun () -> let s = get () in set (s + s) ; (s, s)) in
+  assert_eq "law4 set" left right
 ;;
 
 let _ =
@@ -52,9 +52,9 @@ let _ =
   law4_pure 17 ;
   law4_pure (-3) ;
 
-  law4_put 0 ;
-  law4_put 17 ;
-  law4_put (-3) ;
+  law4_set 0 ;
+  law4_set 17 ;
+  law4_set (-3) ;
 
   perform (Print "all state law tests passed\n")
 ;;

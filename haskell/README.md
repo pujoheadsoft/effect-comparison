@@ -6,7 +6,7 @@ Haskell 版は、State effect を自前の Free monad で明示的に表す。As
 
 ```text
 get : () -> S
-put : S -> ()
+set : S -> ()
 ```
 
 Haskell サンプルでは、この `S` を型パラメータ `s` として `StateF s` に反映している。
@@ -14,7 +14,7 @@ Haskell サンプルでは、この `S` を型パラメータ `s` として `Sta
 ```haskell
 data StateF s next
   = Get (s -> next)
-  | Put s next
+  | Set s next
   deriving (Functor)
 ```
 
@@ -22,7 +22,7 @@ data StateF s next
 
 ```haskell
 get :: Free (StateF s) s
-put :: s -> Free (StateF s) ()
+set :: s -> Free (StateF s) ()
 runState :: s -> Free (StateF s) a -> (a, s)
 ```
 
@@ -82,9 +82,9 @@ stack test
 ## File Guide
 
 - `src/Free.hs`: Free monad の共通定義
-- `src/StateFree.hs`: `StateF s`、`get`、`put`、`runState`、`example`
+- `src/StateFree.hs`: `StateF s`、`get`、`set`、`runState`、`example`
 - `src/AskFree.hs`: `AskF r`
-- `src/StateAskFree.hs`: `StateAskF s r`、`ask`、`getStateAsk`、`putStateAsk`、`runStateAsk`、`stateAskExample`
+- `src/StateAskFree.hs`: `StateAskF s r`、`ask`、`getStateAsk`、`setStateAsk`、`runStateAsk`、`stateAskExample`
 - `app/Main.hs`: 初期状態 `0` で `example` を、環境 `3` と初期状態 `10` で `stateAskExample` を実行
 - `test/StateSpec.hs`: `Int` State としての State law tests
 - `test/StateAskSpec.hs`: State + Ask の実行例

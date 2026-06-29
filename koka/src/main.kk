@@ -5,6 +5,7 @@ import ask
 import state-ask
 
 pub fun main()
+
   val state-result = run-state(0, example)
   println("run-state(0, example) = " ++ state-result.show)
 

@@ -15,11 +15,11 @@ let run_state init action =
 
 let get () = perform Get;;
 
-let put s = perform (Set s);;
+let set s = perform (Set s);;
 
 let example () =
   let x = get () in
-  put (x + 1) ;
+  set (x + 1) ;
   let y = get () in
   (x, y)
 ;;

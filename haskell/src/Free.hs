@@ -20,3 +20,5 @@ instance Functor f => Applicative (Free f) where
 instance Functor f => Monad (Free f) where
   Pure a >>= k = k a
   Op op >>= k = Op (fmap (>>= k) op)
+
+

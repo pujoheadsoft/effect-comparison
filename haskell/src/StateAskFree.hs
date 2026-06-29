@@ -2,7 +2,7 @@ module StateAskFree
   ( StateAskF
   , ask
   , getStateAsk
-  , putStateAsk
+  , setStateAsk
   , stateAskExample
   , runStateAsk
   ) where
@@ -21,19 +21,19 @@ ask = Op (InR (Ask Pure))
 getStateAsk :: Free (StateAskF s r) s
 getStateAsk = Op (InL (Get Pure))
 
-putStateAsk :: s -> Free (StateAskF s r) ()
-putStateAsk s = Op (InL (Put s (Pure ())))
+setStateAsk :: s -> Free (StateAskF s r) ()
+setStateAsk s = Op (InL (Set s (Pure ())))
 
 stateAskExample :: Free (StateAskF Int Int) (Int, Int)
 stateAskExample = do
   delta <- ask
   x <- getStateAsk
-  putStateAsk (x + delta)
+  setStateAsk (x + delta)
   y <- getStateAsk
   pure (x, y)
 
 runStateAsk :: r -> s -> Free (StateAskF s r) a -> (a, s)
 runStateAsk _ s (Pure a) = (a, s)
 runStateAsk env s (Op (InL (Get k))) = runStateAsk env s (k s)
-runStateAsk env _ (Op (InL (Put s next))) = runStateAsk env s next
+runStateAsk env _ (Op (InL (Set s next))) = runStateAsk env s next
 runStateAsk env s (Op (InR (Ask k))) = runStateAsk env s (k env)
